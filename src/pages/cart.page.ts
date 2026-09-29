@@ -73,7 +73,7 @@ export class CartPage extends BasePage {
 
   private async navigateToCheckoutAfterCart(): Promise<void> {
     await this.proceedToCheckoutButton.scrollIntoViewIfNeeded();
-    await this.proceedToCheckoutButton.click({ force: true });
+    await this.proceedToCheckoutButton.click();
     try {
       await this.page.waitForURL(/\/checkout/, { timeout: 8000 });
     } catch {

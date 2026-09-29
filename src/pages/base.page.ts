@@ -72,7 +72,7 @@ export abstract class BasePage {
 
     try {
       if (typeof selectorOrLocator === 'string') {
-        await this.page.click(selectorOrLocator, { timeout: 3000 });
+        await this.page.locator(selectorOrLocator).click({ timeout: 3000 });
       } else {
         await selectorOrLocator.click({ timeout: 3000 });
       }
@@ -81,11 +81,11 @@ export abstract class BasePage {
       console.log(`Locator "${originalRef}" failed with error: ${error.message}`);
       console.warn(`⚠️ SmartClick failed for [${originalRef}]. Engaging AI Healing for: ${goal}`);
 
-      const domSnippet = await this.page.innerHTML('body');
+      const domSnippet = await this.page.locator('body').innerHTML();
       const healedSelector = await getHealedLocatorOrThrow(domSnippet, goal);
 
       console.log(`✨ AI found fix: ${healedSelector}`);
-      await this.page.click(healedSelector);
+      await this.page.locator(healedSelector).click();
 
       logHealing(originalRef, healedSelector, goal, {
         testName: meta?.testName,
