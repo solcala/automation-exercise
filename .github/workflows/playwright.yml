@@ -34,8 +34,8 @@ jobs:
     name: "API Tests"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: "npm"
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload API blob report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-blob-reports-api
           path: blob-report
@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload API allure-results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-results-api
           path: allure-results
@@ -72,8 +72,8 @@ jobs:
     needs: api-tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: "npm"
@@ -87,14 +87,14 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.environment_url }}
       - name: Upload mocked blob report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-blob-reports-mocked
           path: blob-report
           retention-days: 1
       - name: Upload mocked allure-results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-results-mocked
           path: allure-results
@@ -111,8 +111,8 @@ jobs:
         shardIndex: [1, 2, 3]
         shardTotal: [3]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: "npm"
@@ -136,7 +136,7 @@ jobs:
 
       - name: Upload UI blob reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-blob-reports-ui-${{ matrix.shardIndex }}
           path: blob-report
@@ -144,7 +144,7 @@ jobs:
 
       - name: Upload allure-results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: allure-results-ui-${{ matrix.shardIndex }}
           path: allure-results
@@ -160,8 +160,8 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: lts/*
           cache: "npm"
@@ -171,7 +171,7 @@ jobs:
 
       - name: Download all blob reports
         id: download-blobs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           path: all-blob-reports
@@ -186,7 +186,7 @@ jobs:
           mv blob-reports-merged all-blob-reports
 
       - name: Download all allure-results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-allure-results
           pattern: allure-results-*
@@ -214,7 +214,7 @@ jobs:
 
       - name: Consolidate Allure Results
         run: |
-          # merge-multiple (v4) puts files flat in all-allure-results; copy into allure-results
+          # merge-multiple puts files flat in all-allure-results; copy into allure-results
           mkdir -p allure-results
           cp -r all-allure-results/. allure-results/ 2>/dev/null || true
 
@@ -243,13 +243,16 @@ jobs:
           [ -f data/trends.json ] && cp data/trends.json allure-report/data/trends.json || true
 
       - name: 🚀 Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: 📦 Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: allure-report/
+          name: github-pages-${{ github.run_attempt }}
 
       - name: 🌐 Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
