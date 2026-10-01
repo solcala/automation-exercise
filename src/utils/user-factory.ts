@@ -13,7 +13,7 @@ export const generateUserData = async (isFull: boolean = false, customSeed?: num
 
   const user: User = {
     name: faker.person.fullName(),
-    email: faker.internet.email(),
+    email: `${faker.internet.username().toLowerCase()}.${Date.now()}@example.com`,
     password: faker.internet.password({ length: 12 }),
     first_name: faker.person.firstName(),
     last_name: faker.person.lastName(),
