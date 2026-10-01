@@ -39,10 +39,39 @@ export abstract class BasePage {
   }
 
   async navigate(): Promise<void> {
-    await this.page.goto(this.path);
-    await this.page.waitForURL(`**${this.path}`);
-    await this.homeLink.waitFor({ state: 'visible' });
+    const maxAttempts = 3;
+    let lastError: unknown;
 
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForURL(`**${this.path}`);
+
+        const overloadBanner = this.page.getByText(/under heavy load|queue full/i);
+        if ((await overloadBanner.count()) > 0) {
+          throw new Error(
+            `Site overload page while navigating to ${this.path} (attempt ${attempt}/${maxAttempts})`
+          );
+        }
+
+        await this.homeLink.waitFor({ state: 'visible', timeout: 15000 });
+
+        return;
+      } catch (err) {
+        lastError = err;
+        if (attempt === maxAttempts) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+
+    const url = this.page.url();
+    const title = await this.page.title().catch(() => '(unknown)');
+    const cause = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(
+      `navigate() failed for path "${this.path}" after ${maxAttempts} attempts (url=${url}, title=${title}): ${cause}`
+    );
   }
 
   async clickContactUs(brokenLink?: string, meta?: { testName?: string }): Promise<void> {
@@ -72,7 +101,7 @@ export abstract class BasePage {
 
     try {
       if (typeof selectorOrLocator === 'string') {
-        await this.page.click(selectorOrLocator, { timeout: 3000 });
+        await this.page.locator(selectorOrLocator).click({ timeout: 3000 });
       } else {
         await selectorOrLocator.click({ timeout: 3000 });
       }
@@ -81,11 +110,11 @@ export abstract class BasePage {
       console.log(`Locator "${originalRef}" failed with error: ${error.message}`);
       console.warn(`⚠️ SmartClick failed for [${originalRef}]. Engaging AI Healing for: ${goal}`);
 
-      const domSnippet = await this.page.innerHTML('body');
+      const domSnippet = await this.page.locator('body').innerHTML();
       const healedSelector = await getHealedLocatorOrThrow(domSnippet, goal);
 
       console.log(`✨ AI found fix: ${healedSelector}`);
-      await this.page.click(healedSelector);
+      await this.page.locator(healedSelector).click();
 
       logHealing(originalRef, healedSelector, goal, {
         testName: meta?.testName,

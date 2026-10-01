@@ -96,7 +96,7 @@ test.describe('Products API Tests @api', () => {
     expect(body.responseCode).toBe(200);
     expect(body.products).toBeDefined();
     expect(Array.isArray(body.products)).toBe(true);
-    expect(body.products.length).toBe(0);
+    expect(body.products).toHaveLength(0);
   });
 
   test('invalid method PUT on productsList returns 405', async ({ productsApi }) => {

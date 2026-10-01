@@ -38,8 +38,19 @@ export class ProductDetailPage extends BasePage {
   }
 
   async addToCart(): Promise<void> {
-    await this.addToCartButton.click();
-    await this.addedModal.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await this.addToCartButton.click();
+      try {
+        await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
+
+        return;
+      } catch {
+        if (attempt === 1) {
+          throw new Error('Added cart modal (#cartModal) did not become visible after two add-to-cart clicks');
+        }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    }
   }
 
   async addToCartWithQuantity(quantity: number): Promise<void> {
@@ -48,6 +59,7 @@ export class ProductDetailPage extends BasePage {
   }
 
   async viewCartFromModal(): Promise<void> {
+    await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
     await this.addedModalViewCartLink.click();
   }
 }

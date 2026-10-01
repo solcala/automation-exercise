@@ -10,7 +10,7 @@ test.describe('AI Self-Healing Demo @ai-healing', () => {
     const brokenSelector = 'a[href="/wrong-contact-link"]';
 
     try {
-      await page.click(brokenSelector, { timeout: 2000 });
+      await page.locator(brokenSelector).click({ timeout: 2000 });
     } catch (err) {
 
       const error = err as Error;
@@ -21,7 +21,7 @@ test.describe('AI Self-Healing Demo @ai-healing', () => {
 
       const healedSelector = await getHealedLocatorOrThrow(domSnippet, goal);
 
-      await page.click(healedSelector);
+      await page.locator(healedSelector).click();
       logHealing(brokenSelector, healedSelector, goal, {
         testName: test.info().title,
         decision: 'success'

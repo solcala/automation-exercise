@@ -49,10 +49,12 @@ export abstract class ProductGridPage extends BasePage {
   }
 
   async viewCartFromAddedModal(): Promise<void> {
+    await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
     await this.addedModalViewCartLink.click();
   }
 
   async continueShoppingFromAddedModal(): Promise<void> {
+    await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
     await this.addedModalContinueShoppingButton.click();
   }
 }

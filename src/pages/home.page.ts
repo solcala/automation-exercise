@@ -21,9 +21,7 @@ export class HomePage extends ProductGridPage {
   }
 
   async addFirstProductToCart(): Promise<void> {
-    await this.firstProductCard.scrollIntoViewIfNeeded();
-    await this.firstProductCard.hover();
-    await this.firstProductAddToCartButton.click();
+    await this.addProductToCartFromContainer(this.firstProductCard);
   }
 
   async addProductAndViewCart(productInfo: Product): Promise<void> {
