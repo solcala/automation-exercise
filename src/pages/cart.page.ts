@@ -92,10 +92,28 @@ export class CartPage extends BasePage {
   }
 
   async removeItemFromCart(itemName: string): Promise<void> {
-    const itemRow = await this.getRowByProductName(itemName);
+    const itemRow = this.cartItems.filter({ hasText: itemName });
     const deleteButton = itemRow.locator('.cart_delete .cart_quantity_delete');
-    await deleteButton.click();
-    await this.page.locator('#empty_cart').waitFor({ state: 'visible', timeout: 15000 });
+
+    await itemRow.first().waitFor({ state: 'visible', timeout: 10000 });
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await deleteButton.first().click();
+      try {
+        await itemRow.first().waitFor({ state: 'hidden', timeout: 10000 });
+        break;
+      } catch {
+        if (attempt === 1) {
+          throw new Error(`Cart item "${itemName}" was still visible after two delete clicks`);
+        }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    }
+
+    // Last item removed: #empty_cart stays in the DOM but becomes visible
+    if ((await this.cartItems.count()) === 0) {
+      await this.page.locator('#empty_cart').waitFor({ state: 'visible', timeout: 15000 });
+    }
   }
 
   async getProductDataFromRow(name: string): Promise<CartItem> {
