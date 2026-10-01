@@ -39,10 +39,39 @@ export abstract class BasePage {
   }
 
   async navigate(): Promise<void> {
-    await this.page.goto(this.path);
-    await this.page.waitForURL(`**${this.path}`);
-    await this.homeLink.waitFor({ state: 'visible' });
+    const maxAttempts = 3;
+    let lastError: unknown;
 
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForURL(`**${this.path}`);
+
+        const overloadBanner = this.page.getByText(/under heavy load|queue full/i);
+        if ((await overloadBanner.count()) > 0) {
+          throw new Error(
+            `Site overload page while navigating to ${this.path} (attempt ${attempt}/${maxAttempts})`
+          );
+        }
+
+        await this.homeLink.waitFor({ state: 'visible', timeout: 15000 });
+
+        return;
+      } catch (err) {
+        lastError = err;
+        if (attempt === maxAttempts) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
+
+    const url = this.page.url();
+    const title = await this.page.title().catch(() => '(unknown)');
+    const cause = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(
+      `navigate() failed for path "${this.path}" after ${maxAttempts} attempts (url=${url}, title=${title}): ${cause}`
+    );
   }
 
   async clickContactUs(brokenLink?: string, meta?: { testName?: string }): Promise<void> {

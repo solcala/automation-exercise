@@ -7,10 +7,18 @@ test.describe('Login with mocked API', () => {
     await page.context().clearCookies();
   });
 
-  test('Shows error when API returns 401 Unauthorized', async ({ pom }) => {
-    await pom.loginPage.navigate();
-    await pom.loginPage.login('any@email.com', 'anypassword');
-    await expect(pom.loginPage.loginErrorMessage).toBeVisible();
+  test('Shows error when API returns 401 Unauthorized', async ({ pom, page }) => {
+    test.setTimeout(60_000);
+
+    await test.step('Navigate to login page', async () => {
+      await pom.loginPage.navigate();
+      await expect(page.getByText(/under heavy load|queue full/i)).toHaveCount(0);
+    });
+
+    await test.step('Submit credentials and verify 401 error message', async () => {
+      await pom.loginPage.login('any@email.com', 'anypassword');
+      await expect(pom.loginPage.loginErrorMessage).toBeVisible();
+    });
   });
 });
 

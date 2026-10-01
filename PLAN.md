@@ -34,6 +34,10 @@ A Playwright-driven framework that demonstrates professional Quality Engineering
 - Flakiness: `TestUtils.blockAds` / `prepareForScreenshot`, `@flaky` convention
 - AI observability: `logHealing` with test name, decision, model; `healing-report.log`
 - Documentation: Folder map, Representative Scenarios, README polish
+- Deps/CI upgrade branch: Playwright 1.63, ESLint 10, Actions majors, Pages `run_attempt`
+- Live-site harden passes: place-order, cart remove, product-detail qty, mocked checkout, `BasePage.navigate`
+- Unique emails via timestamp in `user-factory.ts`
+- TypeScript 7 (`@typescript/native`) side-by-side with TypeScript 6 API for typescript-eslint
 
 ---
 
@@ -145,3 +149,21 @@ flowchart LR
 ```
 
 ---
+
+## Next changes (backlog)
+
+Track these as follow-up work after the current harden / deps PR:
+
+1. **Improve harden fix**
+   - Further harden shared POM waits (overload detection in more flows, clearer failures).
+   - Remove unused `firstProductAddToCartButton` if still dead code.
+   - Revisit `BasePage.navigate` backoff / attempt count after CI signal.
+
+2. **Add test steps**
+   - Add `test.step` coverage to remaining suites that still lack reportable steps (auth, remaining e2e/guest, API specs beyond what was updated).
+
+3. **Fix / unskip skipped tests**
+   - [`tests/e2e/contact-us.guest.spec.ts`](tests/e2e/contact-us.guest.spec.ts) — re-enable contact form success flow.
+   - [`tests/mocked/login.mocked.spec.ts`](tests/mocked/login.mocked.spec.ts) — delayed 401 case (skip reason: verifyLogin on load + delay).
+   - [`tests/mocked/search.mocked.spec.ts`](tests/mocked/search.mocked.spec.ts) — empty search + delayed empty search.
+   - [`tests/functional/home.guest.spec.ts`](tests/functional/home.guest.spec.ts) — example `@flaky` skip (replace with real flake quarantine or remove).
