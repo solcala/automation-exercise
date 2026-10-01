@@ -28,6 +28,13 @@ export class ProductPage extends ProductGridPage {
   async search(searchTerm: string): Promise<void> {
     await this.searchInput.fill(searchTerm);
     await this.searchInput.press('Enter');
+    try {
+      await this.searchedProductsHeading.waitFor({ state: 'visible', timeout: 15000 });
+    } catch (err) {
+      await this.assertNotOverloaded('product search');
+      throw err;
+    }
+    await this.assertNotOverloaded('product search');
   }
 
   async clickViewProduct(index: number): Promise<void> {

@@ -38,21 +38,28 @@ export abstract class BasePage {
     this.footer = page.locator('#footer');
   }
 
+  /**
+   * Fail fast when automationexercise.com serves its overload page instead of the app.
+   */
+  protected async assertNotOverloaded(action: string): Promise<void> {
+    const overloadBanner = this.page.getByText(/under heavy load|queue full/i);
+    if ((await overloadBanner.count()) > 0) {
+      throw new Error(`Site overload page during ${action} (url=${this.page.url()})`);
+    }
+  }
+
   async navigate(): Promise<void> {
     const maxAttempts = 3;
+    const retryDelayMs = [500, 1000];
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         await this.page.goto(this.path, { waitUntil: 'domcontentloaded' });
         await this.page.waitForURL(`**${this.path}`);
-
-        const overloadBanner = this.page.getByText(/under heavy load|queue full/i);
-        if ((await overloadBanner.count()) > 0) {
-          throw new Error(
-            `Site overload page while navigating to ${this.path} (attempt ${attempt}/${maxAttempts})`
-          );
-        }
+        await this.assertNotOverloaded(
+          `navigate to ${this.path} (attempt ${attempt}/${maxAttempts})`
+        );
 
         await this.homeLink.waitFor({ state: 'visible', timeout: 15000 });
 
@@ -62,7 +69,7 @@ export abstract class BasePage {
         if (attempt === maxAttempts) {
           break;
         }
-        await new Promise((r) => setTimeout(r, 500));
+        await new Promise((r) => setTimeout(r, retryDelayMs[attempt - 1] ?? 1000));
       }
     }
 
