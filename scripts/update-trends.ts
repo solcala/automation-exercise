@@ -28,6 +28,12 @@ function updateTrends(): void {
     process.exit(1);
   }
 
+  if (metrics.totalTests === 0) {
+    console.log('\n⏭️  Skipping trends update: no tests in this run\n');
+
+    return;
+  }
+
   const dataDir = path.dirname(TRENDS_FILE);
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });

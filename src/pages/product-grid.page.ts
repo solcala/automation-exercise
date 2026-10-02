@@ -31,17 +31,21 @@ export abstract class ProductGridPage extends BasePage {
 
   protected async addProductToCartFromContainer(container: Locator): Promise<void> {
     await container.scrollIntoViewIfNeeded();
-    await container.hover();
-    const addBtn = container.locator('.overlay-content .add-to-cart');
+    // In-flow button. The hover overlay sits over the card above and a real click never lands.
+    const addBtn = container.locator('.productinfo .add-to-cart');
+
     for (let attempt = 0; attempt < 2; attempt++) {
-      await addBtn.click();
       try {
+        await addBtn.click({ force: attempt > 0, timeout: 8000 });
         await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
 
         return;
-      } catch {
+      } catch (err) {
         if (attempt === 1) {
-          throw new Error('Added cart modal (#cartModal) did not become visible after two add-to-cart clicks');
+          const cause = err instanceof Error ? err.message : String(err);
+          throw new Error(
+            `Added cart modal (#cartModal) did not become visible after two add-to-cart clicks: ${cause}`
+          );
         }
         await new Promise((r) => setTimeout(r, 400));
       }

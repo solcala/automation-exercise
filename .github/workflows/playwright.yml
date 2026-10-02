@@ -44,8 +44,7 @@ jobs:
       - name: Run API Tests
         run: |
           npx playwright test --project=api-tests \
-          ${{ github.event.inputs.test_grep && format('--grep {0}', github.event.inputs.test_grep) || '' }} \
-          --reporter=blob --reporter=allure-playwright
+          ${{ github.event.inputs.test_grep && format('--grep {0}', github.event.inputs.test_grep) || '' }}
         env:
           # Mapped to your appConfig readEnv('PLAYWRIGHT_BASE_URL')
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.environment_url }}
@@ -82,7 +81,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Mocked Tests
-        run: npx playwright test --project=chromium-mocked --reporter=blob --reporter=allure-playwright
+        run: npx playwright test --project=chromium-mocked
         env:
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.environment_url }}
       - name: Upload mocked blob report
@@ -128,8 +127,7 @@ jobs:
           --project=${{ github.event.inputs.project || 'chromium-guest' }} \
           --grep-invert "@visual|@api|@ai-healing" \
           ${{ github.event.inputs.test_grep && format('--grep {0}', github.event.inputs.test_grep) || '' }} \
-          --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} \
-          --reporter=blob --reporter=allure-playwright
+          --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
         env:
           # Mapped to your appConfig readEnv('PLAYWRIGHT_BASE_URL')
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.environment_url }}
