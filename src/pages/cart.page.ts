@@ -60,9 +60,11 @@ export class CartPage extends BasePage {
       await this.proceedToCheckoutButton.click();
       try {
         await this.page.locator('#checkoutModal').waitFor({ state: 'visible', timeout: 12000 });
+        await this.assertNotOverloaded('guest proceed to checkout');
 
         return;
       } catch {
+        await this.assertNotOverloaded('guest proceed to checkout');
         if (attempt === 1) {
           throw new Error('Guest checkout modal (#checkoutModal) did not become visible after two clicks');
         }
@@ -80,6 +82,7 @@ export class CartPage extends BasePage {
       await this.page.goto('/checkout');
     }
     await this.page.waitForURL(/\/checkout/, { timeout: 15000 });
+    await this.assertNotOverloaded('proceed to checkout');
   }
 
   async getTableHeaders(): Promise<String[]> {

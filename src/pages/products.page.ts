@@ -6,12 +6,14 @@ export class ProductPage extends ProductGridPage {
 
   readonly allProductsHeading: Locator;
   readonly searchInput: Locator;
+  readonly searchButton: Locator;
   readonly searchedProductsHeading: Locator;
 
   constructor(page: Page) {
     super(page);
     this.allProductsHeading = page.getByRole('heading', { name: /all products/i });
     this.searchInput = page.getByPlaceholder('Search Product');
+    this.searchButton = page.locator('#submit_search');
     this.searchedProductsHeading = page.getByText(/searched products/i);
   }
 
@@ -27,7 +29,14 @@ export class ProductPage extends ProductGridPage {
 
   async search(searchTerm: string): Promise<void> {
     await this.searchInput.fill(searchTerm);
-    await this.searchInput.press('Enter');
+    await this.searchButton.click();
+    try {
+      await this.searchedProductsHeading.waitFor({ state: 'visible', timeout: 15000 });
+    } catch (err) {
+      await this.assertNotOverloaded('product search');
+      throw err;
+    }
+    await this.assertNotOverloaded('product search');
   }
 
   async clickViewProduct(index: number): Promise<void> {

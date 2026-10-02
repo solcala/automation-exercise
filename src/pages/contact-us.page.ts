@@ -52,6 +52,7 @@ export class ContactPage extends BasePage {
 
     const message = dialog.message();
     await dialog.accept();
+    await this.assertNotOverloaded('contact form submit');
     console.log(`Dialog message IN: ${message}`);
     console.log(`Dialog message ACCEPTED`);
 
