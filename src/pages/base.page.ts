@@ -115,6 +115,9 @@ export abstract class BasePage {
     } catch (err) {
       const error = err as Error;
       console.log(`Locator "${originalRef}" failed with error: ${error.message}`);
+      if (this.page.isClosed()) {
+        throw error;
+      }
       console.warn(`⚠️ SmartClick failed for [${originalRef}]. Engaging AI Healing for: ${goal}`);
 
       const domSnippet = await this.page.locator('body').innerHTML();

@@ -27,9 +27,87 @@ const HISTORY_FILES = [
   'retry-trend.json',
 ];
 
+const FAILED_STATUSES = new Set(['failed', 'broken']);
+
+interface AllureStatusDetails {
+  message?: string;
+  trace?: string;
+}
+
+interface AllureStep {
+  status?: string;
+  statusDetails?: AllureStatusDetails;
+  steps?: AllureStep[];
+}
+
+interface AllureResult {
+  status?: string;
+  statusDetails?: AllureStatusDetails;
+  steps?: AllureStep[];
+}
+
 function ensureAllureResults(): void {
   if (!fs.existsSync(ALLURE_RESULTS)) {
     fs.mkdirSync(ALLURE_RESULTS, { recursive: true });
+  }
+}
+
+function findDeepestFailure(steps: AllureStep[] | undefined): AllureStatusDetails | undefined {
+  let found: AllureStatusDetails | undefined;
+
+  for (const step of steps ?? []) {
+    const nested = findDeepestFailure(step.steps);
+    if (nested?.message) {
+      found = nested;
+      continue;
+    }
+
+    if (step.status && FAILED_STATUSES.has(step.status) && step.statusDetails?.message) {
+      found = step.statusDetails;
+    }
+  }
+
+  return found;
+}
+
+/**
+ * Playwright records a timeout as the test message and keeps the locator call log on a nested step.
+ * Allure's overview only renders the test message, so copy the deeper error up.
+ */
+function promoteStepFailures(): void {
+  const files = fs.readdirSync(ALLURE_RESULTS).filter((file) => file.endsWith('-result.json'));
+  let promoted = 0;
+
+  for (const file of files) {
+    const fullPath = path.join(ALLURE_RESULTS, file);
+    let result: AllureResult;
+    try {
+      result = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as AllureResult;
+    } catch {
+      continue;
+    }
+
+    if (!result.status || !FAILED_STATUSES.has(result.status)) {
+      continue;
+    }
+
+    const detailed = findDeepestFailure(result.steps);
+    const current = result.statusDetails?.message ?? '';
+    const next = detailed?.message ?? '';
+    if (!next || next.length <= current.length) {
+      continue;
+    }
+
+    result.statusDetails = {
+      message: next,
+      trace: detailed?.trace || next,
+    };
+    fs.writeFileSync(fullPath, JSON.stringify(result), 'utf-8');
+    promoted++;
+  }
+
+  if (promoted > 0) {
+    console.log(`  📎 Promoted step errors onto ${promoted} Allure result(s)`);
   }
 }
 
@@ -127,6 +205,7 @@ function copyHistoryFromPreviousRun(): void {
 
 function main(): void {
   ensureAllureResults();
+  promoteStepFailures();
   writeEnvironmentProperties();
   writeExecutorJson();
   writeCategoriesJson();

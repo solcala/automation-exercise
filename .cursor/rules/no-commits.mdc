@@ -1,0 +1,22 @@
+---
+description: Never create git commits in this project
+alwaysApply: true
+---
+
+# Never commit
+
+Do not create, amend, or complete a git commit. This applies even when the user asks to commit, supplies a commit message, or a plan includes a commit step.
+
+- Do not run `git commit`, `git commit --amend`, or any command whose purpose is to record a commit.
+- Leave changes unstaged unless the user asks only to stage them. Staging is not a commit.
+- "Commit message", "add commit message", and "suggest a commit message" mean write the message text only. Do not run `git commit`.
+- If the user asks for a commit, stop and tell them the changes are ready for them to commit locally. Include the suggested message.
+
+```bash
+# BAD
+git add .
+git commit -m "fix: example"
+
+# GOOD
+# Report the branch, the files changed, and a suggested message. Do not run git commit.
+```
