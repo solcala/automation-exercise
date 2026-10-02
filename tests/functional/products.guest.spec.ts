@@ -84,8 +84,7 @@ test.describe('Products page - guest user', () => {
       await expect(pom.cartPage.emptyCartMessage).toBeHidden();
       const firstRow = pom.cartPage.cartItems.first();
       await expect(firstRow).toBeVisible();
-      const quantity = await firstRow.locator('.cart_quantity').innerText();
-      expect(Number(quantity)).toBe(4);
+      await expect(firstRow.locator('.cart_quantity')).toHaveText('4');
     });
   });
 });

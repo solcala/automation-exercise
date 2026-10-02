@@ -39,14 +39,17 @@ export class ProductDetailPage extends BasePage {
 
   async addToCart(): Promise<void> {
     for (let attempt = 0; attempt < 2; attempt++) {
-      await this.addToCartButton.click();
       try {
-        await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 12000 });
+        await this.addToCartButton.click({ timeout: 5000 });
+        await this.page.locator('#cartModal').waitFor({ state: 'visible', timeout: 8000 });
 
         return;
-      } catch {
+      } catch (err) {
         if (attempt === 1) {
-          throw new Error('Added cart modal (#cartModal) did not become visible after two add-to-cart clicks');
+          const cause = err instanceof Error ? err.message : String(err);
+          throw new Error(
+            `Added cart modal (#cartModal) did not become visible after two add-to-cart clicks: ${cause}`
+          );
         }
         await new Promise((r) => setTimeout(r, 400));
       }
